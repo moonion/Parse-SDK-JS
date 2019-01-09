@@ -108,13 +108,6 @@ type StorageController = {
   removeItemAsync: (path: string) => Promise;
   clear: () => void;
 };
-type LocalDatastoreController = {
-  fromPinWithName: (name: string) => ?any;
-  pinWithName: (name: string, objects: any) => void;
-  unPinWithName: (name: string) => void;
-  getAllContents: () => ?any;
-  clear: () => void;
-};
 type UserController = {
   setCurrentUser: (user: ParseUser) => Promise;
   currentUser: () => ?ParseUser;
@@ -124,6 +117,7 @@ type UserController = {
   become: (options: RequestOptions) => Promise;
   logOut: () => Promise;
   requestPasswordReset: (email: string, options: RequestOptions) => Promise;
+  resetPasswordSetNew: (username: string, token: string, new_password: string, options: RequestOptions) => Promise;
   updateUserOnDisk: (user: ParseUser) => Promise;
   upgradeToRevocableSession: (user: ParseUser, options: RequestOptions) => Promise;
   linkWith: (user: ParseUser, authData: AuthData) => Promise;
@@ -151,12 +145,11 @@ type Config = {
   SchemaController?: SchemaController,
   SessionController?: SessionController,
   StorageController?: StorageController,
-  LocalDatastoreController?: LocalDatastoreController,
   UserController?: UserController,
   HooksController?: HooksController,
 };
 
-const config: Config & { [key: string]: mixed } = {
+var config: Config & { [key: string]: mixed } = {
   // Defaults
   IS_NODE: (typeof process !== 'undefined' &&
             !!process.versions &&
@@ -215,7 +208,7 @@ module.exports = {
   },
 
   setConfigController(controller: ConfigController) {
-    requireMethods('ConfigController', ['current', 'get', 'save'], controller);
+    requireMethods('ConfigController', ['current', 'get'], controller);
     config['ConfigController'] = controller;
   },
 
@@ -339,23 +332,6 @@ module.exports = {
     config['StorageController'] = controller;
   },
 
-  setLocalDatastoreController(controller: LocalDatastoreController) {
-    requireMethods('LocalDatastoreController', ['pinWithName', 'fromPinWithName', 'unPinWithName', 'getAllContents', 'clear'], controller);
-    config['LocalDatastoreController'] = controller;
-  },
-
-  getLocalDatastoreController(): LocalDatastoreController {
-    return config['LocalDatastoreController'];
-  },
-
-  setLocalDatastore(store: any) {
-    config['LocalDatastore'] = store;
-  },
-
-  getLocalDatastore() {
-    return config['LocalDatastore'];
-  },
-
   getStorageController(): StorageController {
     return config['StorageController'];
   },
@@ -378,6 +354,7 @@ module.exports = {
       'become',
       'logOut',
       'requestPasswordReset',
+      'resetPasswordSetNew',
       'upgradeToRevocableSession',
       'linkWith',
     ], controller);
